@@ -93,6 +93,7 @@ function resizeMenu(menuId){
     const thumbHeight=Math.max(20, menuContainer.offsetHeight/items.length);
     document.getElementById('scrollbar-thumb').style.height=thumbHeight+'px';
 }
+
 function openSubmenu(id){
     document.getElementById('main-menu').style.display='none'; 
     document.querySelectorAll('.submenu-inner').forEach(sm=>sm.classList.remove('active'));
@@ -100,26 +101,54 @@ function openSubmenu(id){
     submenu.classList.add('active');
     currentMenu=id; 
     selectedIndex=0;
+    
+    // Update header with submenu title
+    const submenuTitle=submenu.querySelector('.submenu-title');
+    if(submenuTitle){
+        menuHeader.textContent=submenuTitle.textContent;
+    }
+    
     resizeMenu(id); 
+    updateMenuSelection(0);
 }
+
 function closeSubmenu(){
     document.querySelectorAll('.submenu-inner').forEach(sm=>sm.classList.remove('active'));
     document.getElementById('main-menu').style.display='flex'; 
     currentMenu='main-menu';
     selectedIndex=0;
     resizeMenu('main-menu'); 
+    updateMenuSelection(0);
 }
 
 // Click handlers
 document.getElementById('settings-tab').onclick=()=>openSubmenu('settings-submenu');
 document.getElementById('open-banners').onclick=()=>openSubmenu('banners-submenu');
 
+// Hover functionality
+document.querySelectorAll('.menu-item').forEach(item=>{
+    item.addEventListener('mouseenter',()=>{
+        const title=item.dataset.title||item.textContent;
+        menuHeader.textContent=title;
+    });
+    
+    item.addEventListener('mouseleave',()=>{
+        const menuElement=document.getElementById(currentMenu);
+        const currentItems=menuElement.querySelectorAll('.menu-item');
+        if(currentItems.length>selectedIndex){
+            const selectedItem=currentItems[selectedIndex];
+            const title=selectedItem.dataset.title||selectedItem.textContent;
+            menuHeader.textContent=title;
+        }
+    });
+});
+
 // Banners
 const banners=[
 {name:"Default",url:"https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExaXlxdXl0cHNnY29jeW1vNzUzb200M25yeG82em0zbTd2c2t4aWxpeiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xA1wn6UBF0bNngIczk/giphy.gif"},
 {name:"Banner 1",url:"https://cdn.discordapp.com/attachments/1315019666489348167/1396812136340127795/image.png?ex=689f162c&is=689dc4ac&hm=f31b342d54a90421ce70cfc55e970e985c9376aa9ca89c90c1bda4e134556c03&"},
 {name:"Banner 2",url:"https://cdn.discordapp.com/attachments/1315019666489348167/1384643568840343633/linky_banner.png?ex=689fa450&is=689e52d0&hm=3413f2b3df7898f8d7d2ea3d8db67f8747538b051230d04d2cc40d47e6bc210a&"},
-{name:"buuckzgz",url:"https://cdn.discordapp.com/attachments/1193166390933340273/1377130600401604679/buuckzhuhh.gif?ex=68a0a790&is=689f5610&hm=29f462f7d64ff03f4ece38711b7b29f35f810120f42100c8152728548a7d292b&"}
+{name:"buuckz",url:"https://cdn.discordapp.com/attachments/1193166390933340273/1377130600401604679/buuckzhuhh.gif?ex=68a0a790&is=689f5610&hm=29f462f7d64ff03f4ece38711b7b29f35f810120f42100c8152728548a7d292b&"}
 ];
 const bannersMenu=document.getElementById('banners-menu-items');
 banners.forEach(b=>{
@@ -139,11 +168,15 @@ function updateMenuSelection(direction){
     const menuElement=document.getElementById(currentMenu);
     const currentItems=menuElement.querySelectorAll('.menu-item');
     if(!currentItems.length) return;
+    
     currentItems[selectedIndex].classList.remove('selected');
     selectedIndex=(selectedIndex+direction+currentItems.length)%currentItems.length;
     currentItems[selectedIndex].classList.add('selected');
-    // Update header dynamically
-    menuHeader.textContent=currentItems[selectedIndex].dataset.title||currentItems[selectedIndex].textContent;
+    
+    // Update header with the selected item's title
+    const title=currentItems[selectedIndex].dataset.title||currentItems[selectedIndex].textContent;
+    menuHeader.textContent=title;
+    
     const scrollStep=(menuContainer.offsetHeight-currentItems[0].offsetHeight)/(currentItems.length-1||1);
     scrollbarThumb.style.top=`${selectedIndex*scrollStep}px`;
     menuCounter.textContent=`${selectedIndex+1}/${currentItems.length}`;
